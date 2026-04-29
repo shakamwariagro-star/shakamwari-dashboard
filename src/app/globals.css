@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&family=Fira+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Sage & Eucalyptus — modern, soothing greens */
+  --color-g1: #1f3a2e;
+  --color-g2: #2d5545;
+  --color-g3: #3f7561;
+  --color-g4: #5a9580;
+  --color-g5: #7bb39c;
+  --color-g6: #a3cdb9;
+  --color-g7: #d4e6dc;
+  --color-g8: #eef5f0;
+
+  /* Soft Champagne & Blush accents */
+  --color-cream: #f6f4ef;
+  --color-parch: #fdfcf9;
+  --color-sand: #ead8c4;
+  --color-earth: #8a6a4c;
+  --color-wheat: #d4b483;
+  --color-gold: #c89968;
+
+  /* Status — softened, modern tones */
+  --color-ok: #2f7a5e;
+  --color-ok-bg: #e1f1e9;
+  --color-wn: #a17122;
+  --color-wn-bg: #fbf0d8;
+  --color-er: #a04545;
+  --color-er-bg: #fae4e0;
+  --color-in: #3d7a94;
+  --color-in-bg: #e0eef5;
+
+  /* Text — cool slate-sage */
+  --color-tx: #1f3a2e;
+  --color-tx-d: #5e7a6d;
+  --color-tx-f: #9aaea3;
+
+  /* Borders & Shadows — softer, more diffuse */
+  --color-bd: rgba(63,117,97,0.14);
+  --color-bd2: rgba(63,117,97,0.24);
+  --shadow-card: 0 1px 2px rgba(31,58,46,0.04), 0 6px 20px rgba(31,58,46,0.06);
+  --shadow-card-hover: 0 4px 14px rgba(31,58,46,0.08), 0 16px 40px rgba(31,58,46,0.1);
+
+  /* Font families */
+  --font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Fira Mono', 'Consolas', monospace;
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-g1: #eef5f0;
+  --color-g7: #2d5545;
+  --color-g8: #1f3a2e;
+
+  --color-cream: #0f1a15;
+  --color-parch: #16241d;
+  --color-sand: #223027;
+  --color-earth: #c9a98a;
+  --color-wheat: #e0c48a;
+  --color-gold: #d4b483;
+
+  --color-ok: #7bb39c;
+  --color-ok-bg: rgba(123,179,156,0.12);
+  --color-wn: #e0b060;
+  --color-wn-bg: rgba(224,176,96,0.1);
+  --color-er: #d88888;
+  --color-er-bg: rgba(216,136,136,0.1);
+  --color-in: #78b4c8;
+  --color-in-bg: rgba(120,180,200,0.1);
+
+  --color-tx: #dfe8e2;
+  --color-tx-d: #9aaea3;
+  --color-tx-f: #5e7268;
+
+  --color-bd: rgba(255,255,255,0.08);
+  --color-bd2: rgba(255,255,255,0.14);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.28);
+  --shadow-card-hover: 0 6px 28px rgba(0,0,0,0.38);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+    background:
+      radial-gradient(circle at 10% 0%, rgba(163,205,185,0.25), transparent 45%),
+      radial-gradient(circle at 90% 100%, rgba(212,180,131,0.18), transparent 40%),
+      var(--color-cream);
+    background-attachment: fixed;
+    color: var(--color-tx);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark body {
+    background:
+      radial-gradient(circle at 10% 0%, rgba(63,117,97,0.18), transparent 45%),
+      radial-gradient(circle at 90% 100%, rgba(138,106,76,0.12), transparent 40%),
+      var(--color-cream);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer components {
+  /* Section label with decorative line */
+  .sec-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--color-tx-d);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: var(--font-heading);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sec-label::after {
+    content: '';
+    flex: 1;
+    height: 1.5px;
+    background: linear-gradient(to right, var(--color-bd2), transparent);
+  }
+
+  /* Metric card */
+  .mcard {
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), var(--color-parch));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--color-bd);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+  }
+  .mcard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(90,149,128,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .mcard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+  }
+  .mcard::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--color-g4), var(--color-wheat));
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .mcard:hover::after {
+    opacity: 1;
+  }
+  .mcard-label {
+    font-size: 10.5px;
+    color: var(--color-tx-d);
+    margin-bottom: 6px;
+    font-weight: 600;
+    line-height: 1.3;
+    font-family: var(--font-heading);
+    letter-spacing: 0.02em;
+  }
+  .mcard-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--color-tx);
+    letter-spacing: -0.5px;
+    font-family: var(--font-mono);
+    line-height: 1.2;
+  }
+  .mcard-sub {
+    font-size: 10px;
+    color: var(--color-tx-f);
+    margin-top: 4px;
+  }
+
+  /* Monospace number utility */
+  .mn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  /* Card wrapper */
+  .theme-card {
+    background: var(--color-parch);
+    border: 1px solid var(--color-bd);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-card);
+  }
+  .theme-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-tx-d);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    font-family: var(--font-heading);
+  }
+
+  /* Table wrapper */
+  .theme-table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--color-bd);
+    box-shadow: var(--shadow-card);
+    background: var(--color-parch);
+  }
+
+  /* Status pills */
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    letter-spacing: 0.01em;
+  }
+  .pill-ok { background: var(--color-ok-bg); color: var(--color-ok); }
+  .pill-er { background: var(--color-er-bg); color: var(--color-er); }
+  .pill-wn { background: var(--color-wn-bg); color: var(--color-wn); }
+  .pill-in { background: var(--color-in-bg); color: var(--color-in); }
+
+  /* Buttons */
+  .btn-primary {
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    color: white;
+    background: linear-gradient(135deg, #3f7561, #5a9580);
+    box-shadow: 0 2px 10px rgba(63,117,97,0.28), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(63,117,97,0.38), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+}
