@@ -323,6 +323,7 @@ function BillingTab({ bills, lab, supabase, setBills }: {
         id: Date.now(), bill_no: form.bill_no, lab_id: lab.id, district: lab.district, company_name: lab.company_name,
         bill_date: form.bill_date, billing_samples: form.billing_samples, billing_amount: form.billing_amount,
         bill_copy_url: null, submitted_by: null, submission_status: 'pending', approved_by: null, approved_at: null,
+        rejection_reason: null,
         sanctioned_order_number: null, sanctioned_order_copy_url: null, payment_status: 'pending', payment_date: null,
         payment_amount: null, utr_number: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
       };
