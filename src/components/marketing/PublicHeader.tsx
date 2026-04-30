@@ -68,9 +68,9 @@ export default function PublicHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/login" className="btn-primary">
+          <a href="/lab-dashboard.html" target="_blank" rel="noopener noreferrer" className="btn-primary">
             Employee Login
-          </Link>
+          </a>
         </div>
 
         <button
@@ -107,13 +107,15 @@ export default function PublicHeader() {
               </Link>
             );
           })}
-          <Link
-            href="/login"
+          <a
+            href="/lab-dashboard.html"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={() => setOpen(false)}
             className="btn-primary block text-center mt-2"
           >
             Employee Login
-          </Link>
+          </a>
         </div>
       )}
     </header>
