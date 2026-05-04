@@ -87,8 +87,13 @@
     }, 800);
   };
 
+  let _supaActiveChannel = null;
   window._supaSubscribeState = (onRemoteChange) => {
-    const ch = window._supa.channel('dashboard_state_realtime')
+    if (_supaActiveChannel) {
+      try { window._supa.removeChannel(_supaActiveChannel); } catch (e) {}
+      _supaActiveChannel = null;
+    }
+    _supaActiveChannel = window._supa.channel('dashboard_state_realtime')
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'dashboard_state' },
         async (payload) => {
@@ -98,7 +103,14 @@
           onRemoteChange(payload.new.data);
         })
       .subscribe();
-    return ch;
+    return _supaActiveChannel;
+  };
+
+  window._supaUnsubscribeState = () => {
+    if (_supaActiveChannel) {
+      try { window._supa.removeChannel(_supaActiveChannel); } catch (e) {}
+      _supaActiveChannel = null;
+    }
   };
 })();
 </script>
@@ -7395,6 +7407,7 @@ function doLogout() {
   if (!confirm('Logout?')) return;
   logActivity('login', 'Logged out');
   saveStateImmediate();
+  if (window._supaUnsubscribeState) window._supaUnsubscribeState();
   window._supaLogout().catch(() => {});
   sessionStorage.removeItem(AUTH_KEY);
   unlockedCells.clear();
