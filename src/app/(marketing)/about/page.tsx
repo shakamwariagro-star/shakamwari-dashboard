@@ -158,26 +158,6 @@ export default function AboutPage() {
               className="w-full h-[360px] object-cover"
             />
           </div>
-          <div
-            className="mt-4 rounded-[14px] p-5 ring-1 ring-black/5"
-            style={{ background: 'var(--color-parch)', boxShadow: 'var(--shadow-card)' }}
-          >
-            <div
-              className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-g3 mb-1"
-              style={{ fontFamily: "'Fira Mono', monospace" }}
-            >
-              Director
-            </div>
-            <div
-              className="text-[18px] font-extrabold text-g1 mb-1"
-              style={{ fontFamily: 'var(--font-heading)' }}
-            >
-              Mukesh Raghuwanshi
-            </div>
-            <div className="text-[12.5px] text-tx-d">
-              Director, Shakamwari Agro India Pvt Ltd
-            </div>
-          </div>
         </div>
       </section>
 
