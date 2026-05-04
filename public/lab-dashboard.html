@@ -6,6 +6,53 @@
 <title>Lab Management System - 48 Labs</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  const URL = 'https://fpneganhxhuxwxtaaodn.supabase.co';
+  const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbmVnYW5oeGh1eHd4dGFhb2RuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTU1ODQsImV4cCI6MjA5MzAzMTU4NH0.RtGpYELDKmRVTGMC9PHiCdJQ_hQptO_B4ZfxjKVV9Z4';
+  const DOMAIN = '@shakamwari.local';
+  window._supa = supabase.createClient(URL, ANON);
+
+  const usernameToEmail = (u) => u.includes('@') ? u : (u + DOMAIN);
+  const emailToUsername = (e) => (e || '').split('@')[0];
+
+  async function profileFor(userId) {
+    const { data, error } = await window._supa
+      .from('profiles')
+      .select('full_name, role')
+      .eq('id', userId)
+      .single();
+    return error ? null : data;
+  }
+
+  window._supaLogin = async (username, password) => {
+    const { data, error } = await window._supa.auth.signInWithPassword({
+      email: usernameToEmail(username),
+      password,
+    });
+    if (error) return { ok: false, error: error.message };
+    const prof = await profileFor(data.user.id);
+    if (!prof) return { ok: false, error: 'Profile not found' };
+    return { ok: true, username, role: prof.role, fullName: prof.full_name, userId: data.user.id };
+  };
+
+  window._supaLogout = () => window._supa.auth.signOut();
+
+  window._supaCurrentSession = async () => {
+    const { data } = await window._supa.auth.getSession();
+    if (!data.session) return null;
+    const prof = await profileFor(data.session.user.id);
+    if (!prof) return null;
+    return {
+      username: emailToUsername(data.session.user.email),
+      role: prof.role,
+      fullName: prof.full_name,
+      userId: data.session.user.id,
+    };
+  };
+})();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -7218,29 +7265,33 @@ function hideLoginScreen() {
   document.getElementById('loginScreen').classList.remove('show');
 }
 
-function doLogin() {
+async function doLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   const err = document.getElementById('loginError');
   if (!u || !p) { err.textContent = 'Enter username and password'; return; }
-  const user = fullState.users.find(x => x.username.toLowerCase() === u.toLowerCase());
-  if (!user || user.passHash !== hashPass(p)) {
-    err.textContent = 'Invalid username or password';
+  err.textContent = 'Signing in...';
+  const result = await window._supaLogin(u, p);
+  if (!result.ok) {
+    err.textContent = result.error === 'Invalid login credentials'
+      ? 'Invalid username or password'
+      : (result.error || 'Login failed');
     return;
   }
-  currentUser = user;
-  saveAuth();
+  err.textContent = '';
+  currentUser = { username: result.username, role: result.role, _supaUserId: result.userId };
   hideLoginScreen();
   updateUserUI();
   logActivity('login', 'Logged in');
   initApp();
-  showToast('Welcome, ' + user.username + '!');
+  showToast('Welcome, ' + result.username + '!');
 }
 
 function doLogout() {
   if (!confirm('Logout?')) return;
   logActivity('login', 'Logged out');
   saveStateImmediate();
+  window._supaLogout().catch(() => {});
   sessionStorage.removeItem(AUTH_KEY);
   unlockedCells.clear();
   currentUser = null;
@@ -21776,12 +21827,21 @@ function _uxtBootstrap() {
 
 loadFullState();
 loadTheme();
-if (loadAuth()) {
-  updateUserUI();
-  initApp();
-} else {
-  showLoginScreen();
-}
+(async () => {
+  try {
+    const sess = await window._supaCurrentSession();
+    if (sess) {
+      currentUser = { username: sess.username, role: sess.role, _supaUserId: sess.userId };
+      updateUserUI();
+      initApp();
+    } else {
+      showLoginScreen();
+    }
+  } catch (e) {
+    console.warn('[supa boot]', e);
+    showLoginScreen();
+  }
+})();
 // Kick off universal export system after app boot
 setTimeout(_uxtBootstrap, 400);
 </script>
