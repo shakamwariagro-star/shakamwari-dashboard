@@ -51,6 +51,55 @@
       userId: data.session.user.id,
     };
   };
+
+  // ===== Shared dashboard state (Option A: single shared JSON row) =====
+
+  window._supaLoadState = async () => {
+    const { data, error } = await window._supa
+      .from('dashboard_state')
+      .select('data, updated_at, updated_by')
+      .eq('id', 1)
+      .single();
+    if (error) { console.warn('[supa state load]', error.message); return null; }
+    return data;
+  };
+
+  let _supaSaveTimer = null;
+  let _supaLastSentJson = null;
+  window._supaSaveState = (state) => {
+    clearTimeout(_supaSaveTimer);
+    _supaSaveTimer = setTimeout(async () => {
+      try {
+        const json = JSON.stringify(state);
+        if (json === _supaLastSentJson) return;
+        const { data: u } = await window._supa.auth.getUser();
+        const { error } = await window._supa
+          .from('dashboard_state')
+          .update({
+            data: state,
+            updated_at: new Date().toISOString(),
+            updated_by: u?.user?.id || null,
+          })
+          .eq('id', 1);
+        if (error) console.warn('[supa state save]', error.message);
+        else _supaLastSentJson = json;
+      } catch (e) { console.warn('[supa state save]', e); }
+    }, 800);
+  };
+
+  window._supaSubscribeState = (onRemoteChange) => {
+    const ch = window._supa.channel('dashboard_state_realtime')
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'dashboard_state' },
+        async (payload) => {
+          if (!payload.new || !payload.new.data) return;
+          const { data: u } = await window._supa.auth.getUser();
+          if (payload.new.updated_by && u?.user?.id === payload.new.updated_by) return;
+          onRemoteChange(payload.new.data);
+        })
+      .subscribe();
+    return ch;
+  };
 })();
 </script>
 <style>
@@ -7148,6 +7197,7 @@ function saveState() {
       }
     } catch (e) { showToast('Save failed: ' + e.message); }
   }, 250);
+  if (currentUser && window._supaSaveState) window._supaSaveState(fullState);
 }
 
 function saveStateImmediate() {
@@ -7155,6 +7205,58 @@ function saveStateImmediate() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(fullState));
   } catch (e) { showToast('Save failed: ' + e.message); }
+  if (currentUser && window._supaSaveState) window._supaSaveState(fullState);
+}
+
+// Apply a remote fullState received from another browser via Supabase Realtime.
+// Mirrors the same render flow as the existing localStorage 'storage' event handler.
+function _applyRemoteFullState(incoming) {
+  if (!incoming || typeof incoming !== 'object') return;
+  if (JSON.stringify(fullState) === JSON.stringify(incoming)) return;
+  fullState = incoming;
+  if (fullState.years && fullState.currentFY && fullState.years[fullState.currentFY]) {
+    state = fullState.years[fullState.currentFY];
+  }
+  try { showToast('🔄 Updated by another user'); } catch (e) {}
+  const activeView = document.querySelector('.view.active');
+  if (!activeView) return;
+  const vid = activeView.id;
+  if (vid === 'view-manager') {
+    if (typeof renderBillClaim === 'function') renderBillClaim();
+    if (typeof renderDashboard === 'function') renderDashboard();
+  } else if (vid === 'view-account') {
+    if (typeof currentAccountTab !== 'undefined' && currentAccountTab === 'demand') {
+      if (typeof renderAccountDemand === 'function') renderAccountDemand();
+    } else {
+      if (typeof renderAccountView === 'function') renderAccountView();
+    }
+  } else if (vid === 'view-dashboard') {
+    if (typeof renderDashboard === 'function') renderDashboard();
+  } else if (vid === 'view-hr') {
+    if (typeof renderHR === 'function') renderHR();
+  } else if (vid === 'view-demand') {
+    if (typeof renderAdminDemand === 'function') renderAdminDemand();
+  }
+  if (typeof populateFYSelector === 'function') populateFYSelector();
+}
+
+// Sync local fullState with the shared Supabase row.
+// On first run (remote is {}), push local up so we don't lose seed data.
+// Otherwise, replace local with remote so all users see the same world.
+async function syncFullStateWithSupabase() {
+  if (!window._supaLoadState) return;
+  const remote = await window._supaLoadState();
+  if (!remote) return;
+  const remoteData = remote.data || {};
+  const remoteIsEmpty = !remoteData || Object.keys(remoteData).length === 0;
+  if (remoteIsEmpty) {
+    if (window._supaSaveState) window._supaSaveState(fullState);
+  } else {
+    fullState = remoteData;
+    if (fullState.years && fullState.currentFY && fullState.years[fullState.currentFY]) {
+      state = fullState.years[fullState.currentFY];
+    }
+  }
 }
 
 // ========== Activity Log ==========
@@ -7280,6 +7382,8 @@ async function doLogin() {
   }
   err.textContent = '';
   currentUser = { username: result.username, role: result.role, _supaUserId: result.userId };
+  await syncFullStateWithSupabase();
+  if (window._supaSubscribeState) window._supaSubscribeState(_applyRemoteFullState);
   hideLoginScreen();
   updateUserUI();
   logActivity('login', 'Logged in');
@@ -21832,6 +21936,8 @@ loadTheme();
     const sess = await window._supaCurrentSession();
     if (sess) {
       currentUser = { username: sess.username, role: sess.role, _supaUserId: sess.userId };
+      await syncFullStateWithSupabase();
+      if (window._supaSubscribeState) window._supaSubscribeState(_applyRemoteFullState);
       updateUserUI();
       initApp();
     } else {
