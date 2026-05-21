@@ -11687,12 +11687,22 @@ function importData() {
   input.click();
 }
 
-// ========== Transaction stub ==========
+// ========== Transaction stubs ==========
 // The "Transaction Ledger" view is a legacy section that is not exposed
-// through navigation anymore. Keep this stub so the orphan "+ New Transaction"
-// button in #view-transactions doesn't throw a ReferenceError if reached.
+// through navigation anymore. Keep these stubs so the orphan "+ New
+// Transaction" button, the role/mode filters, and the search input in
+// #view-transactions don't throw ReferenceErrors if reached (via deep
+// link, programmatic switchView('transactions'), or future re-exposure).
 function addTxn() {
   showToast('Transaction module ab Account → Bill Claims se manage hota hai');
+}
+function renderTxns() {
+  // No-op: section is deprecated. If a caller routes here intentionally,
+  // surface a hint instead of silently doing nothing.
+  const view = document.getElementById('view-transactions');
+  if (view && view.classList.contains('active')) {
+    showToast('Transaction Ledger ab Account → Bill Claims se manage hota hai');
+  }
 }
 
 // ========== Activity Log ==========
