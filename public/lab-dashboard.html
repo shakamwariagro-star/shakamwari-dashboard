@@ -10541,12 +10541,19 @@ function isCustomExpenseCat(cat) {
   return getCustomExpenseCats().includes(cat);
 }
 // Rebuild the live EXPENSE_CATS array in-place after any change.
-// Only admin-added custom categories — defaults are NOT included anymore.
-// Admin has full control via Manage Categories modal.
+// Includes the 14 default categories (minus any the admin has hidden or
+// permanently deleted), plus any custom categories the admin has added.
+// Without this, a fresh install ships with an empty dropdown and no
+// expense entry can be created. Admin still has full control via
+// Manage Categories modal — hide/delete/rename all flow through here.
 function rebuildExpenseCats() {
-  const merged = getCustomExpenseCats().slice();
+  const deleted = getDeletedDefaultExpenseCats();
+  const hidden = getHiddenExpenseCats();
+  const visibleDefaults = DEFAULT_EXPENSE_CATS.filter(c => !deleted.includes(c) && !hidden.includes(c));
+  const customs = getCustomExpenseCats().filter(c => !visibleDefaults.includes(c));
   EXPENSE_CATS.length = 0;
-  merged.forEach(c => EXPENSE_CATS.push(c));
+  visibleDefaults.forEach(c => EXPENSE_CATS.push(c));
+  customs.forEach(c => EXPENSE_CATS.push(c));
   // Keep OTHER_CATS in sync too (used by Other-editor UI)
   if (typeof rebuildOtherCats === 'function') rebuildOtherCats();
 }
@@ -20459,13 +20466,19 @@ function renderGenEntry() {
     labSel.dataset.built = '1';
     labSel.dataset.labCount = String(state.labs.length);
   }
-  // Populate Category dropdown
+  // Populate Category dropdown — rebuild when EXPENSE_CATS changes (e.g.
+  // after admin adds/hides/renames categories). Without the count check
+  // the dropdown gets stuck on whatever it had at first render — including
+  // an empty list when no categories are present yet.
   const catSel = document.getElementById('genEntryCat');
-  if (!catSel.dataset.built) {
+  if (!catSel.dataset.built || catSel.dataset.catCount !== String(EXPENSE_CATS.length)) {
+    const curCat = catSel.value;
     catSel.innerHTML = '<option value="">— Select Category —</option>' + EXPENSE_CATS.map(c =>
-      `<option value="${c}">${c}</option>`
+      `<option value="${c}">${escapeHtml(c)}</option>`
     ).join('');
     catSel.dataset.built = '1';
+    catSel.dataset.catCount = String(EXPENSE_CATS.length);
+    if (curCat && EXPENSE_CATS.includes(curCat)) catSel.value = curCat;
   }
   // Populate Paid-By company dropdown (unique companies from labs)
   const paidCoSel = document.getElementById('genEntryPaidByCo');
