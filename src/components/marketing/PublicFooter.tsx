@@ -41,7 +41,7 @@ export default function PublicFooter() {
             <li><Link href="/about" className="hover:text-g3 transition-colors">About Us</Link></li>
             <li><Link href="/services" className="hover:text-g3 transition-colors">Our Services</Link></li>
             <li><Link href="/contact" className="hover:text-g3 transition-colors">Contact</Link></li>
-            <li><Link href="/login" className="hover:text-g3 transition-colors">Employee Login</Link></li>
+            <li><Link href="/login" className="hover:text-g3 transition-colors">STL Dashboard</Link></li>
           </ul>
         </div>
 

@@ -68,8 +68,8 @@ export default function PublicHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/login" className="btn-primary">
-            Employee Login
+          <Link href="/login" className="btn-primary whitespace-nowrap">
+            STL Dashboard
           </Link>
         </div>
 
@@ -112,7 +112,7 @@ export default function PublicHeader() {
             onClick={() => setOpen(false)}
             className="btn-primary block text-center mt-2"
           >
-            Employee Login
+            STL Dashboard
           </Link>
         </div>
       )}
