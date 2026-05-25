@@ -10631,18 +10631,18 @@ function getRegisterDisplayName(originalName) {
 // Active checklist list — defaults (minus hidden, minus deleted) + admin-added customs.
 // Used everywhere checklists are DISPLAYED to end users (manager view,
 // admin docs checklist pills, completion helpers, CSV export).
-// Active checklist list — ONLY admin-added custom registers.
-// Default registers have been removed from this list — admin fully controls
-// what registers exist via Manage Registers. Used everywhere checklists are
-// DISPLAYED: manager view, admin docs checklist, completion helpers, CSV export.
 function getChecklistItems() {
-  return getCustomRegisters().slice();
+  const activeDefaults = DEFAULT_CHECKLIST_ITEMS.filter(
+    r => !isDefaultRegisterDeleted(r) && !isRegisterHidden(r)
+  );
+  return activeDefaults.concat(getCustomRegisters());
 }
 
-// Backward-compat helper used by admin's Manage Registers panel — same as
-// getChecklistItems() now (no hidden-defaults concept anymore).
+// Admin's Manage Registers panel shows EVERYTHING including hidden defaults
+// (so admin can unhide them). Excludes only permanently-deleted defaults.
 function getAllRegistersIncludingHidden() {
-  return getCustomRegisters().slice();
+  const allDefaults = DEFAULT_CHECKLIST_ITEMS.filter(r => !isDefaultRegisterDeleted(r));
+  return allDefaults.concat(getCustomRegisters());
 }
 
 // Is this register name a custom one (i.e. deletable)?
